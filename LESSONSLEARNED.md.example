@@ -1,0 +1,21 @@
+# Lessons Learned
+
+Paste accumulated lessons learned below. Each lesson should be a short paragraph describing a recurring issue, a best practice, or a hard-won insight from past code reviews.
+
+Leave this file empty (or with just this header) for the first run. After each GLEAN phase, consider adding new lessons from the generated `lessons_{timestamp}.md` file.
+
+This file is gitignored because it contains user-specific accumulated knowledge. To get started, copy this file:
+
+```bash
+cp LESSONSLEARNED.md.example LESSONSLEARNED.md
+```
+
+## Example format
+
+### Always use the three-parameter overload of DownloadFileAsync.
+
+The single-parameter version concatenates the path and fails if segment count differs. Use `DownloadFileAsync(containerName, filePath, tenantId)` instead.
+
+### Keep all business logic in the backend.
+
+Razor components should only present data and capture user input. Calculations, transformations, and cross-referencing belong in handlers and services.
