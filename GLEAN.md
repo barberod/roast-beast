@@ -50,7 +50,7 @@ What follows is a recap of your recent activities and a statement of what to do 
 
 You have recently performed a sequence of 6 tasks.
 
-First, you authored antagonistic pseudo-comments about the code changes on the current branch, adopting the persona of Statler & Waldorf (SCRUTINIZE).
+First, you authored antagonistic pseudo-comments about the code changes on the current branch, adopting the persona of the SW Reviewer (SCRUTINIZE).
 
 Second, you checked the code changes against past Lessons Learned items to identify recurring issues (RETRO).
 

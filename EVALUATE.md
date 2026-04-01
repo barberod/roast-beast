@@ -48,7 +48,7 @@ An excellent example will be written in markdown and will look like this...
 
 ### Author
 
-Statler & Waldorf
+SW Reviewer
 
 ### Location
 
@@ -78,7 +78,7 @@ Claude
 ```plaintext
 Grade: A-
 
-Statler & Waldorf are correct. The file is missing the required copyright header that every source file must have per project convention. The existing PaymentEntityTypeConfiguration.cs (and the vast majority of files in this folder) has it; all three new Order entity configuration files are missing it.
+SW Reviewer are correct. The file is missing the required copyright header that every source file must have per project convention. The existing PaymentEntityTypeConfiguration.cs (and the vast majority of files in this folder) has it; all three new Order entity configuration files are missing it.
 
 Recommendation: Accept, with the amendment that the fix should also be applied to the two sibling files that have the same omission:
 

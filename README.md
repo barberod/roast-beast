@@ -1,6 +1,6 @@
-# Statler & Waldorf
+# Statler-Waldorf
 
-A [Claude Code](https://claude.ai/code) skill that performs antagonistic self-review of dev branch code changes. It authors pseudo-comments as a harsh code reviewer (channeling the cantankerous Muppets duo), checks code against accumulated lessons learned, evaluates its own findings, plans and implements fixes, extracts new lessons, and commits the results -- all in one invocation.
+A [Claude Code](https://claude.ai/code) skill that performs antagonistic self-review of dev branch code changes. It authors pseudo-comments as a harsh code reviewer, checks code against accumulated lessons learned, evaluates its own findings, plans and implements fixes, extracts new lessons, and commits the results -- all in one invocation.
 
 ## Pipeline
 
@@ -8,7 +8,7 @@ The skill runs 8 sequential phases:
 
 | | Phase | What it does | Output |
 |---|-------|-------------|--------|
-| 👁️ | **Scrutinize** | Authors antagonistic pseudo-comments about code changes (min-comments enforced) | `comments_{timestamp}.md` |
+| 🔍 | **Scrutinize** | Authors antagonistic pseudo-comments about code changes (mode-dependent, min-comments enforced) | `comments_{timestamp}.md` |
 | ⏪ | **Retro** | Checks code against accumulated lessons learned from past runs | `retro_{timestamp}.md` |
 | 📊 | **Evaluate** | Grades each pseudo-comment and retro finding (A+ to F-) | `evaluation_{timestamp}.md` |
 | 📐 | **Formulate** | Plans code changes for accepted findings | `plan_{timestamp}.md` |
@@ -45,10 +45,10 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
      "user-mail": "you@example.com",
      "user-name": "Your Name",
      "handle": "yourhandle",
-     "lessons-learned-text": "",
      "defaults": {
        "codebase": "project",
        "quiet": false,
+       "mode": "default",
        "private": false,
        "agent-attribution": false,
        "min-comments": 0
@@ -64,17 +64,32 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
    | `user-name` | Must match `git config user.name` in your repo (or `_` to skip check; overridable via `--user-name` param) |
    | `handle` | Short handle that appears in your branch names (optional; `_` to skip filtering; overridable via `--handle` param) |
    | `product-text` | Description of your product and tech stack |
-   | `sanity-text` | Self-audit questions run after implementation |
-   | `guidance-text` | Architectural rules and coding conventions |
-   | `lessons-learned-text` | Accumulated lessons from past runs (start empty; grow over time) |
    | `defaults` | Default values for parameters (see Usage below) |
 
    See `config.example.json` for the full template with all keys.
 
+4. Set up lessons learned:
+   ```bash
+   cp LESSONSLEARNED.md.example LESSONSLEARNED.md
+   ```
+   Start with an empty file. After each run, consider adding new lessons from `lessons_{timestamp}.md`.
+
+5. Set up sanity check rules:
+   ```bash
+   cp SANITYCHECK-RULES.md.example SANITYCHECK-RULES.md
+   ```
+   Customize the lettered self-audit questions to match your project's standards. This file is **required** — the skill will not run without it.
+
+6. Set up guidance:
+   ```bash
+   cp GUIDANCE.md.example GUIDANCE.md
+   ```
+   Add your architectural rules, coding conventions, and workflow constraints. This file is **required**.
+
 ## Usage
 
 ```
-/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
+/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
 ```
 
 Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `--name:true`, or `--name:false`. The `--quiet` parameter also accepts `--quiet:force` for maximum automation. Omitted parameters fall back to config defaults.
@@ -85,6 +100,7 @@ Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `-
 | `--item-id` | string | *(none -- prompted)* | Work item identifier (e.g., `20525`) |
 | `--handle` | string | *(config `handle` key)* | Developer handle for branch matching; `_` skips filtering |
 | `--quiet` | `false` \| `true` \| `force` | `false` | `false`: pause for confirmations. `true`: skip skill confirmations. `force`: skip all interruptions including tool approvals. |
+| `--mode` | string | `default` | Scrutinize review lens: `default` (📋), `harsh` (🔥), `frontend` (🎨), `cleancode` (🧹), `quick` (⚡), `academic` (🎓). Accepts name, ID letter, or symbol. |
 | `--private` | bool | `false` | Reserved for future use (currently no effect) |
 | `--agent-attribution` | bool | `false` | Allow Co-Authored-By lines in git commits |
 | `--min-comments` | integer | `0` | Minimum pseudo-comments SCRUTINIZE must produce (0-10). Higher values force more antagonistic review. |
@@ -98,16 +114,19 @@ Identity parameters (`--handle`, `--user-mail`, `--user-name`) fall back to the 
 - `/statler-waldorf --item-id:20525` -- use item ID 20525, config defaults for the rest
 - `/statler-waldorf --item-id:20525 --quiet --min-comments:5` -- quiet mode, at least 5 findings
 - `/statler-waldorf --item-id:20525 --quiet:force --min-comments:10` -- maximum antagonism, zero interruptions
+- `/statler-waldorf --item-id:20525 --mode:harsh --min-comments:8` -- harsh scrutiny with high minimum
+- `/statler-waldorf --item-id:20525 --mode:frontend` -- frontend-focused review
+- `/statler-waldorf --item-id:20525 --mode:Q` -- quick mode (by ID)
 - `/statler-waldorf --codebase:personal --item-id:main` -- review personal codebase main branch
 - `/statler-waldorf --handle:_ --user-mail:_` -- skip handle filtering and email check
 
 When it finishes:
 - Commits have been created locally -- you still need to **push**
-- Consider adding new lessons from `lessons_{timestamp}.md` to `config.json` `lessons-learned-text` for future RETRO checks
+- Consider adding new lessons from `lessons_{timestamp}.md` to `LESSONSLEARNED.md` for future RETRO checks
 
 ## How it works
 
-Each phase is defined by a markdown file (`SCRUTINIZE.md`, `RETRO.md`, `EVALUATE.md`, etc.) that contains instructions Claude follows at runtime. `SKILL.md` is the orchestrator that ties them together. There is no compiled code -- the entire skill is structured prompts.
+Each phase is defined by a markdown file that contains instructions Claude follows at runtime. The Scrutinize phase uses mode-specific files (`SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`, etc.) while other phases use fixed files (`RETRO.md`, `EVALUATE.md`, etc.). Lessons learned are stored in `LESSONSLEARNED.md`, sanity check rules in `SANITYCHECK-RULES.md`, and architectural guidance in `GUIDANCE.md` (all gitignored, user-specific). `SKILL.md` is the orchestrator that ties them together. There is no compiled code -- the entire skill is structured prompts.
 
 ## License
 

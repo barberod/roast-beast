@@ -3,11 +3,11 @@ name: statler-waldorf
 description: General code review skill that authors antagonistic pseudo-comments on dev branch changes, evaluates them, checks past lessons, and implements fixes.
 ---
 
-# Statler & Waldorf
+# Statler-Waldorf
 
-**When to use:** Invoke with `/statler-waldorf` to perform a self-review of dev branch code changes. The skill authors antagonistic pseudo-comments (as the cantankerous duo Statler & Waldorf), checks code against accumulated lessons learned, evaluates the findings, plans and implements fixes, extracts new lessons, and commits the results — all in one invocation. Unlike rockem-sockem, this skill does **not** require an open PR.
+**When to use:** Invoke with `/statler-waldorf` to perform a self-review of dev branch code changes. The skill authors antagonistic pseudo-comments, checks code against accumulated lessons learned, evaluates the findings, plans and implements fixes, extracts new lessons, and commits the results — all in one invocation. Unlike rockem-sockem, this skill does **not** require an open PR.
 
-**Usage:** `/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
+**Usage:** `/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
 
 - Parameters use `--name:value` syntax and may appear in **any order**.
 - Boolean parameters accept `--name:true`, `--name:false`, or bare `--name` (shorthand for `--name:true`).
@@ -23,13 +23,16 @@ description: General code review skill that authors antagonistic pseudo-comments
 - `/statler-waldorf --item-id:20525 --quiet --min-comments:5`
 - `/statler-waldorf --item-id:20525` — codebase, other params use config defaults
 - `/statler-waldorf --item-id:20525 --quiet:force --min-comments:10` — maximum antagonism, zero interruptions
+- `/statler-waldorf --item-id:20525 --mode:harsh --min-comments:8` — harsh scrutiny with high minimum
+- `/statler-waldorf --item-id:20525 --mode:frontend` — frontend-focused review
+- `/statler-waldorf --item-id:20525 --mode:Q` — quick mode (by ID)
 - `/statler-waldorf` — prompts for item-id, other params use config defaults
 
 ## Overview
 
 This skill orchestrates an end-to-end pipeline of 8 sequential phases — each defined by its own frontmatter file in this skill directory — producing documentation artifacts in the developer's personal notes folder and making code changes + commits in the project repo.
 
-The 8 phases: 👁️ **Scrutinize** → ⏪ **Retro** → 📊 **Evaluate** → 📐 **Formulate** → 🏗️ **Implement** → 🤔 **Sanity Check** → 📓 **Glean** → 📦 **Finalize**
+The 8 phases: 🔍 **Scrutinize** → ⏪ **Retro** → 📊 **Evaluate** → 📐 **Formulate** → 🏗️ **Implement** → 🤔 **Sanity Check** → 📓 **Glean** → 📦 **Finalize**
 
 ---
 
@@ -47,12 +50,15 @@ Read `config.json` from this skill's directory. This file defines:
 | `user-name` | Developer's git name |
 | `handle` | Short handle used in branch names (overridable via `--handle` param; set to `_` to skip handle filtering) |
 | `product-text` | Description of your product (tech stack, architecture, frameworks) — injected into all phase files |
-| `sanity-text` | Lettered self-audit questions run after implementation — injected into the SANITY CHECK phase |
-| `guidance-text` | Architectural rules, coding conventions, and workflow constraints — injected into FORMULATE and IMPLEMENT phases |
-| `lessons-learned-text` | Accumulated lessons from past runs — injected into RETRO and GLEAN phases for retrospective checking and deduplication |
-| `defaults` | Object with default parameter values: `codebase`, `quiet`, `private`, `agent-attribution`, `min-comments`. Missing boolean keys are treated as `false`. Missing string keys trigger a user prompt. Missing `min-comments` defaults to `0`. |
+| `defaults` | Object with default parameter values: `codebase`, `quiet`, `mode`, `private`, `agent-attribution`, `min-comments`. Missing boolean keys are treated as `false`. Missing string keys trigger a user prompt. Missing `min-comments` defaults to `0`. Missing `mode` defaults to `default`. |
 
 If `config.json` is missing or unreadable, stop and alert the user.
+
+**Lessons learned source:** Read `LESSONSLEARNED.md` from this skill directory. If it does not exist or is empty, fall back to `LESSONSLEARNED.md.example`. If neither file exists or both are empty, set `{lessons-learned-text}` to empty string (this is expected on first run). This value is injected into RETRO.md and GLEAN.md.
+
+**Sanity check rules source:** Read `SANITYCHECK-RULES.md` from this skill directory. If it does not exist or is empty, fall back to `SANITYCHECK-RULES.md.example`. If neither file exists or both are empty, stop and alert the user — sanity check rules are required. Set `{sanity-text}` to the full text content of whichever file was found. This value is injected into SANITYCHECK.md.
+
+**Guidance source:** Read `GUIDANCE.md` from this skill directory. If it does not exist or is empty, fall back to `GUIDANCE.md.example`. If neither file exists or both are empty, stop and alert the user — guidance is required. Set `{guidance-text}` to the full text content of whichever file was found. This value is injected into FORMULATE.md and IMPLEMENT.md.
 
 **Parse and resolve named parameters.** After loading config, parse the invocation arguments using these rules:
 
@@ -60,9 +66,9 @@ If `config.json` is missing or unreadable, stop and alert the user.
 2. **Help check.** If any token is `--help`, read `HELP.md` from this skill directory and display its contents to the user. Then **stop** — do not continue with the rest of the skill.
 3. Each token must start with `--`. If any token lacks the `--` prefix, stop and alert the user that this skill uses named parameters, and show the correct syntax.
 4. For each `--` token, split on the **first** colon (`:`) to get the parameter name and value. If there is no colon, the token is a bare boolean flag (value = `true`). Splitting on the first colon is critical for Windows paths (e.g., `--codebase:C:\foo` yields name=`codebase`, value=`C:\foo`).
-5. Validate each parameter name against the allowed set: `codebase`, `item-id`, `handle`, `quiet`, `private`, `agent-attribution`, `min-comments`, `user-mail`, `user-name`. If unrecognized, stop and alert the user with the list of valid names.
+5. Validate each parameter name against the allowed set: `codebase`, `item-id`, `handle`, `quiet`, `mode`, `private`, `agent-attribution`, `min-comments`, `user-mail`, `user-name`. If unrecognized, stop and alert the user with the list of valid names.
 6. Reject duplicate parameter names.
-7. For boolean parameters (`private`, `agent-attribution`), the value must be `true`, `false`, or absent (bare flag = `true`). For `quiet`, the value must be `true`, `false`, `force`, or absent (bare `--quiet` = `true`). For string parameters (`handle`, `user-mail`, `user-name`), any non-empty value is accepted. For `min-comments`, the value must be a string parseable as an integer from 0 to 10 inclusive; bare `--min-comments` (no value) is not allowed — the user must provide a number.
+7. For boolean parameters (`private`, `agent-attribution`), the value must be `true`, `false`, or absent (bare flag = `true`). For `quiet`, the value must be `true`, `false`, `force`, or absent (bare `--quiet` = `true`). For string parameters (`handle`, `user-mail`, `user-name`), any non-empty value is accepted. For `min-comments`, the value must be a string parseable as an integer from 0 to 10 inclusive; bare `--min-comments` (no value) is not allowed — the user must provide a number. For `mode`, the value must be a valid mode name (`default`, `harsh`, `frontend`, `cleancode`, `quick`, `academic`), a valid mode ID (`D`, `H`, `F`, `C`, `Q`, `A` — case-insensitive), or a valid mode symbol (`📋`, `🔥`, `🎨`, `🧹`, `⚡`, `🎓`). Bare `--mode` (no value) is not allowed — the user must provide a mode. Normalize the resolved mode to its lowercase name form (e.g., `H` becomes `harsh`, `🔥` becomes `harsh`).
 
 **Resolve each parameter** using this precedence: command-line value > `defaults` from config > prompt user. Store the resolved values for use in subsequent steps.
 
@@ -95,7 +101,12 @@ Validate all of the following. If any check fails, notify the user with a clear 
 
 **(f)** All of the following files exist in this skill directory and are non-empty:
 - `HELP.md`
-- `SCRUTINIZE.md`
+- `SCRUTINIZE-DEFAULT.md`
+- `SCRUTINIZE-HARSH.md`
+- `SCRUTINIZE-FRONTEND.md`
+- `SCRUTINIZE-CLEANCODE.md`
+- `SCRUTINIZE-QUICK.md`
+- `SCRUTINIZE-ACADEMIC.md`
 - `RETRO.md`
 - `EVALUATE.md`
 - `FORMULATE.md`
@@ -103,6 +114,9 @@ Validate all of the following. If any check fails, notify the user with a clear 
 - `SANITYCHECK.md`
 - `GLEAN.md`
 - `FINALIZE.md`
+- At least one of `LESSONSLEARNED.md` or `LESSONSLEARNED.md.example`
+- At least one of `SANITYCHECK-RULES.md` or `SANITYCHECK-RULES.md.example`
+- At least one of `GUIDANCE.md` or `GUIDANCE.md.example`
 
 ### Step 3 — Resolve Codebase
 
@@ -168,7 +182,20 @@ The three levels are:
 
 **(l) Resolve agent-attribution-text.** If `--agent-attribution` resolved to `true` (from command line or config default), set `{agent-attribution-text}` to: "Agent attribution is allowed. You may include Co-Authored-By lines in commit messages to credit AI agents that contributed to the changes." Otherwise (default), set it to: "Agent attribution is not allowed. Do not include Co-Authored-By lines or any other agent attribution in commit messages. Strip any existing agent attribution."
 
-**(m) Resolve min-comments.** Store the resolved `--min-comments` value as `{min-comments}` for injection into SCRUTINIZE.md.
+**(m) Resolve min-comments.** Store the resolved `--min-comments` value as `{min-comments}` for injection into the scrutinize mode file.
+
+**(n) Resolve mode.** The mode is determined by the resolved value of `--mode` (from the command line, then the config default `defaults.mode`). If neither provides a value, default to `default`. Normalize the value to its lowercase name form using the mapping table below. If the resolved value does not match any valid name, ID, or symbol, stop and alert the user with the list of valid modes.
+
+| ID | Symbol | Mode | Frontmatter File |
+|----|--------|------|-----------------|
+| D | 📋 | default | `SCRUTINIZE-DEFAULT.md` |
+| H | 🔥 | harsh | `SCRUTINIZE-HARSH.md` |
+| F | 🎨 | frontend | `SCRUTINIZE-FRONTEND.md` |
+| C | 🧹 | cleancode | `SCRUTINIZE-CLEANCODE.md` |
+| Q | ⚡ | quick | `SCRUTINIZE-QUICK.md` |
+| A | 🎓 | academic | `SCRUTINIZE-ACADEMIC.md` |
+
+Store the resolved mode name as `{mode}` for display purposes and to determine which file to read in Step 6.
 
 **(h-k) Ensure personal subdirectories exist.**
 
@@ -201,8 +228,10 @@ Execute each phase **in order**. For each phase:
 
 | Step | | Phase | Frontmatter File | Output |
 |------|---|-------|------------------|--------|
-| 6 | 👁️ | Scrutinize | `SCRUTINIZE.md` | `comments_{timestamp}.md` |
+| 6 | 🔍 | Scrutinize | `SCRUTINIZE-{mode}.md` | `comments_{timestamp}.md` |
 | 7 | ⏪ | Retro | `RETRO.md` | `retro_{timestamp}.md` |
+
+**Note on Step 6:** The Scrutinize phase reads `SCRUTINIZE-{mode}.md` where `{mode}` is the resolved mode name from Step 5(n) (e.g., `SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`). All other phases (Steps 7–13) are unaffected by the mode — they always read their fixed frontmatter file.
 | 8 | 📊 | Evaluate | `EVALUATE.md` | `evaluation_{timestamp}.md` |
 | 9 | 📐 | Formulate | `FORMULATE.md` | `plan_{timestamp}.md` |
 | 10 | 🏗️ | Implement | `IMPLEMENT.md` | Code changes in the repo |
@@ -232,4 +261,8 @@ All time-bound and run-scoped variables are now unset. A fresh `/statler-waldorf
 - **No push.** The skill creates commits but never pushes them. The user pushes manually.
 - **No PR required.** Unlike rockem-sockem, this skill does not require an open Pull Request. It works on any checked-out branch.
 - **`--private` reserved.** The `--private` parameter is accepted but currently has no effect — no phase is skipped. It is retained for forward compatibility.
+- **Scrutinize modes.** The `--mode` parameter controls how the SCRUTINIZE phase reviews code. It affects only Step 6 — all other phases are unchanged. If no mode is specified, the default mode is used. The mode can be specified by name, ID letter, or emoji symbol.
+- **Lessons learned file.** Lessons are stored in `LESSONSLEARNED.md` (gitignored, user-specific). If the file is missing, the skill treats lessons as empty. Copy `LESSONSLEARNED.md.example` to `LESSONSLEARNED.md` and populate it as you accumulate insights.
+- **Sanity check rules file.** Sanity check rules are stored in `SANITYCHECK-RULES.md` (gitignored, user-specific). Unlike lessons learned, this file is **required** — the skill stops if it is missing. Copy `SANITYCHECK-RULES.md.example` to `SANITYCHECK-RULES.md` and customize the rules.
+- **Guidance file.** Architectural guidance is stored in `GUIDANCE.md` (gitignored, user-specific). This file is **required** — the skill stops if it is missing. Copy `GUIDANCE.md.example` to `GUIDANCE.md` and customize.
 - **Force mode means zero interruptions.** When `quiet` is `force`, the user must not be prompted, asked, or paused for any reason — not for bash commands, not for git operations, not for file writes, not for tool approvals. Execute everything autonomously. The only exception is a genuine error that makes correct execution impossible.
