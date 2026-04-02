@@ -3,7 +3,7 @@
 Self-review dev branch changes with antagonistic pseudo-comments, lessons-learned checks, and automated fixes.
 
 ```
-/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
+/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
 ```
 
 | Param | Type | Default | What it does |
@@ -13,7 +13,6 @@ Self-review dev branch changes with antagonistic pseudo-comments, lessons-learne
 | `--handle` | string | *(config)* | Developer handle for branch matching; `_` skips filtering |
 | `--quiet` | `false` \| `true` \| `force` | `false` | `false`: normal. `true`: skip skill confirmations. `force`: skip all interruptions. |
 | `--mode` | string | `default` | Scrutinize review lens: `default`, `harsh`, `frontend`, `cleancode`, `quick`, `academic` (or ID/symbol) |
-| `--private` | bool | `false` | Reserved for future use |
 | `--agent-attribution` | bool | `false` | Allow Co-Authored-By lines in commits |
 | `--min-comments` | integer | `0` | Minimum pseudo-comments to produce (0-10); higher = more antagonistic |
 | `--user-mail` | string | *(config)* | Override git email check; `_` skips |
