@@ -49,7 +49,6 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
        "codebase": "project",
        "quiet": false,
        "mode": "default",
-       "private": false,
        "agent-attribution": false,
        "min-comments": 0
      }
@@ -89,8 +88,10 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
 ## Usage
 
 ```
-/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--private[:bool]] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
+/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
 ```
+
+> **Tip:** Pass `--help` for a quick-reference card with all parameters, defaults, and examples.
 
 Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `--name:true`, or `--name:false`. The `--quiet` parameter also accepts `--quiet:force` for maximum automation. Omitted parameters fall back to config defaults.
 
@@ -101,7 +102,6 @@ Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `-
 | `--handle` | string | *(config `handle` key)* | Developer handle for branch matching; `_` skips filtering |
 | `--quiet` | `false` \| `true` \| `force` | `false` | `false`: pause for confirmations. `true`: skip skill confirmations. `force`: skip all interruptions including tool approvals. |
 | `--mode` | string | `default` | Scrutinize review lens: `default` (📋), `harsh` (🔥), `frontend` (🎨), `cleancode` (🧹), `quick` (⚡), `academic` (🎓). Accepts name, ID letter, or symbol. |
-| `--private` | bool | `false` | Reserved for future use (currently no effect) |
 | `--agent-attribution` | bool | `false` | Allow Co-Authored-By lines in git commits |
 | `--min-comments` | integer | `0` | Minimum pseudo-comments SCRUTINIZE must produce (0-10). Higher values force more antagonistic review. |
 | `--user-mail` | string | *(config `user-mail` key)* | Override git email check; `_` skips |
