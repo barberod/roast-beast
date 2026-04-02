@@ -9,7 +9,6 @@
     "codebase": "project",
     "quiet": false,
     "mode": "default",
-    "private": false,
     "agent-attribution": false,
     "min-comments": 0
   }
