@@ -16,9 +16,16 @@ Work in the following directory: `{personal-dir-location}\notes\{year}\{month}\{
 
 The codebase is in the following directory: `{codebase}`
 
+#### Diff Data
+
+The CAPTURE phase has already gathered the diff information for this review. The captured data is in:
+`{personal-dir-location}\notes\{year}\{month}\{folder-name}\diffs_{timestamp}.md`
+
+Use the captured diff as your primary source for identifying changed files and code. You should still read full file context from the codebase as needed to understand surrounding code.
+
 ## Task
 
-Perform a quick, shallow code review of the changes on the current branch compared to `main`.
+Perform a quick, shallow code review of the changes on the current branch (as captured in the diff data).
 
 Review only the diff — do not read full file context unless a potential bug requires it. Focus exclusively on:
 

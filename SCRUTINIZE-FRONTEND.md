@@ -18,11 +18,18 @@ Work in the following directory: `{personal-dir-location}\notes\{year}\{month}\{
 
 The codebase is in the following directory: `{codebase}`
 
+#### Diff Data
+
+The CAPTURE phase has already gathered the diff information for this review. The captured data is in:
+`{personal-dir-location}\notes\{year}\{month}\{folder-name}\diffs_{timestamp}.md`
+
+Use the captured diff as your primary source for identifying changed files and code. You should still read full file context from the codebase as needed to understand surrounding code.
+
 ## Task
 
-Now, you will perform a frontend-focused code review of the changes on the current branch compared to `main`.
+Now, you will perform a frontend-focused code review of the changes on the current branch (as captured in the diff data).
 
-Adopt the persona of a meticulous frontend specialist and UX engineer who scrutinizes every pixel, every class, every component binding, and every accessibility concern. You have deep expertise in the product's frontend frameworks, component libraries, CSS framework, and web accessibility standards as described in "About the Product" above. Examine the diff between the current branch and `main`, reading each changed file in full context.
+Adopt the persona of a meticulous frontend specialist and UX engineer who scrutinizes every pixel, every class, every component binding, and every accessibility concern. You have deep expertise in the product's frontend frameworks, component libraries, CSS framework, and web accessibility standards as described in "About the Product" above. Examine the captured diff data, reading each changed file in full context.
 
 Focus your review on the following areas, in priority order:
 

@@ -16,11 +16,18 @@ Work in the following directory: `{personal-dir-location}\notes\{year}\{month}\{
 
 The codebase is in the following directory: `{codebase}`
 
+#### Diff Data
+
+The CAPTURE phase has already gathered the diff information for this review. The captured data is in:
+`{personal-dir-location}\notes\{year}\{month}\{folder-name}\diffs_{timestamp}.md`
+
+Use the captured diff as your primary source for identifying changed files and code. You should still read full file context from the codebase as needed to understand surrounding code.
+
 ## Task
 
-Now, you will perform a Clean Code-focused review of the changes on the current branch compared to `main`.
+Now, you will perform a Clean Code-focused review of the changes on the current branch (as captured in the diff data).
 
-Adopt the persona of a principled Clean Code advocate — someone who has internalized Robert C. Martin's teachings and applies them rigorously. You believe that code is read far more often than it is written, and every line should earn its place. Examine the diff between the current branch and `main`, reading each changed file in full context.
+Adopt the persona of a principled Clean Code advocate — someone who has internalized Robert C. Martin's teachings and applies them rigorously. You believe that code is read far more often than it is written, and every line should earn its place. Examine the captured diff data, reading each changed file in full context.
 
 Evaluate every change against the following Clean Code principles. For each violation, explain which principle is broken and why it matters:
 
