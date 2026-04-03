@@ -239,6 +239,8 @@ Execute each phase **in order**. For each phase:
 | 12 | 📓 | Glean | `GLEAN.md` | `lessons_{timestamp}.md` |
 | 13 | 📦 | Finalize | `FINALIZE.md` | Git commits (not pushed) |
 
+**Mode-dependent output naming:** When the resolved mode is `default`, the output filenames shown above are used as-is. When the mode is anything other than `default`, the Scrutinize, Evaluate, and Glean output files include the mode name: `comments-{mode}_{timestamp}.md`, `evaluation-{mode}_{timestamp}.md`, `lessons-{mode}_{timestamp}.md`. The Retro, Formulate, Sanity Check, and Finalize outputs are unaffected by mode and always use their fixed names.
+
 All markdown output files are saved to: `{personal-dir-location}/notes/{year}/{month}/{folder-name}/`
 
 ### Step 14 — Process Complete
