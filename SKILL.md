@@ -7,7 +7,7 @@ description: General code review skill that authors antagonistic pseudo-comments
 
 **When to use:** Invoke with `/roast-beast` to perform a self-review of dev branch code changes. The skill authors antagonistic pseudo-comments, checks code against accumulated lessons learned, evaluates the findings, plans and implements fixes, extracts new lessons, and commits the results — all in one invocation. Unlike rockem-sockem, this skill does **not** require an open PR.
 
-**Usage:** `/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
+**Usage:** `/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--starting-hash:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
 
 - Parameters use `--name:value` syntax and may appear in **any order**.
 - Boolean parameters accept `--name:true`, `--name:false`, or bare `--name` (shorthand for `--name:true`).
@@ -23,6 +23,7 @@ description: General code review skill that authors antagonistic pseudo-comments
 - `/roast-beast --item-id:20525 --quiet --min-comments:5`
 - `/roast-beast --item-id:20525` — codebase, other params use config defaults
 - `/roast-beast --item-id:20525 --quiet:force --min-comments:10` — maximum antagonism, zero interruptions
+- `/roast-beast --item-id:20525 --starting-hash:abc1234` — review from specific commit through HEAD
 - `/roast-beast --item-id:20525 --mode:harsh --min-comments:8` — harsh scrutiny with high minimum
 - `/roast-beast --item-id:20525 --mode:frontend` — frontend-focused review
 - `/roast-beast --item-id:20525 --mode:Q` — quick mode (by ID)
@@ -30,9 +31,9 @@ description: General code review skill that authors antagonistic pseudo-comments
 
 ## Overview
 
-This skill orchestrates an end-to-end pipeline of 8 sequential phases — each defined by its own frontmatter file in this skill directory — producing documentation artifacts in the developer's personal notes folder and making code changes + commits in the project repo.
+This skill orchestrates an end-to-end pipeline of 9 sequential phases — each defined by its own frontmatter file in this skill directory — producing documentation artifacts in the developer's personal notes folder and making code changes + commits in the project repo.
 
-The 8 phases: 🔍 **Scrutinize** → ⏪ **Retro** → 📊 **Evaluate** → 📐 **Formulate** → 🏗️ **Implement** → 🤔 **Sanity Check** → 📓 **Glean** → 📦 **Finalize**
+The 9 phases: 📸 **Capture** → 🔍 **Scrutinize** → ⏪ **Retro** → 📊 **Evaluate** → 📐 **Formulate** → 🏗️ **Implement** → 🤔 **Sanity Check** → 📓 **Glean** → 📦 **Finalize**
 
 ---
 
@@ -66,13 +67,15 @@ If `config.json` is missing or unreadable, stop and alert the user.
 2. **Help check.** If any token is `--help`, read `HELP.md` from this skill directory and display its contents to the user. Then **stop** — do not continue with the rest of the skill.
 3. Each token must start with `--`. If any token lacks the `--` prefix, stop and alert the user that this skill uses named parameters, and show the correct syntax.
 4. For each `--` token, split on the **first** colon (`:`) to get the parameter name and value. If there is no colon, the token is a bare boolean flag (value = `true`). Splitting on the first colon is critical for Windows paths (e.g., `--codebase:C:\foo` yields name=`codebase`, value=`C:\foo`).
-5. Validate each parameter name against the allowed set: `codebase`, `item-id`, `handle`, `quiet`, `mode`, `agent-attribution`, `min-comments`, `user-mail`, `user-name`. If unrecognized, stop and alert the user with the list of valid names.
+5. Validate each parameter name against the allowed set: `codebase`, `item-id`, `handle`, `quiet`, `mode`, `starting-hash`, `agent-attribution`, `min-comments`, `user-mail`, `user-name`. If unrecognized, stop and alert the user with the list of valid names.
 6. Reject duplicate parameter names.
-7. For boolean parameters (`agent-attribution`), the value must be `true`, `false`, or absent (bare flag = `true`). For `quiet`, the value must be `true`, `false`, `force`, or absent (bare `--quiet` = `true`). For string parameters (`handle`, `user-mail`, `user-name`), any non-empty value is accepted. For `min-comments`, the value must be a string parseable as an integer from 0 to 10 inclusive; bare `--min-comments` (no value) is not allowed — the user must provide a number. For `mode`, the value must be a valid mode name (`default`, `harsh`, `frontend`, `cleancode`, `quick`, `academic`), a valid mode ID (`D`, `H`, `F`, `C`, `Q`, `A` — case-insensitive), or a valid mode symbol (`📋`, `🔥`, `🎨`, `🧹`, `⚡`, `🎓`). Bare `--mode` (no value) is not allowed — the user must provide a mode. Normalize the resolved mode to its lowercase name form (e.g., `H` becomes `harsh`, `🔥` becomes `harsh`).
+7. For boolean parameters (`agent-attribution`), the value must be `true`, `false`, or absent (bare flag = `true`). For `quiet`, the value must be `true`, `false`, `force`, or absent (bare `--quiet` = `true`). For string parameters (`handle`, `user-mail`, `user-name`), any non-empty value is accepted. For `starting-hash`, any non-empty value is accepted; bare `--starting-hash` (no value) is not allowed — the user must provide either a commit hash or `_`. For `min-comments`, the value must be a string parseable as an integer from 0 to 10 inclusive; bare `--min-comments` (no value) is not allowed — the user must provide a number. For `mode`, the value must be a valid mode name (`default`, `harsh`, `frontend`, `cleancode`, `quick`, `academic`), a valid mode ID (`D`, `H`, `F`, `C`, `Q`, `A` — case-insensitive), or a valid mode symbol (`📋`, `🔥`, `🎨`, `🧹`, `⚡`, `🎓`). Bare `--mode` (no value) is not allowed — the user must provide a mode. Normalize the resolved mode to its lowercase name form (e.g., `H` becomes `harsh`, `🔥` becomes `harsh`).
 
 **Resolve each parameter** using this precedence: command-line value > `defaults` from config > prompt user. Store the resolved values for use in subsequent steps.
 
 **Special resolution for identity parameters:** `--handle`, `--user-mail`, and `--user-name` resolve as: command-line value > corresponding top-level config key (`handle`, `user-mail`, `user-name`). These are **not** in the `defaults` object and are **never** prompted for — if absent from both command line and config, `handle` defaults to empty; `user-mail` and `user-name` remain unset (the Step 2 check will fail unless bypassed with `_`).
+
+**Special resolution for `--starting-hash`:** This parameter resolves as: command-line value > `defaults.starting-hash` from config. If absent from both command line and config defaults, it defaults to `_`. A value of `_` means "use default behavior" (diff against main via merge-base). When set to a specific commit hash, the CAPTURE phase will use it as the starting point for diff capture. This parameter is **never** prompted for.
 
 | Scenario | Resolved value |
 |---|---|
@@ -101,6 +104,7 @@ Validate all of the following. If any check fails, notify the user with a clear 
 
 **(f)** All of the following files exist in this skill directory and are non-empty:
 - `HELP.md`
+- `CAPTURE.md`
 - `SCRUTINIZE-DEFAULT.md`
 - `SCRUTINIZE-HARSH.md`
 - `SCRUTINIZE-FRONTEND.md`
@@ -195,7 +199,14 @@ The three levels are:
 | Q | ⚡ | quick | `SCRUTINIZE-QUICK.md` |
 | A | 🎓 | academic | `SCRUTINIZE-ACADEMIC.md` |
 
-Store the resolved mode name as `{mode}` for display purposes and to determine which file to read in Step 6.
+Store the resolved mode name as `{mode}` for display purposes and to determine which file to read in Step 7.
+
+**(o) Validate starting-hash.** If the resolved `starting-hash` is not `_`, validate the hash in the codebase directory:
+
+1. Run `git rev-parse --verify {starting-hash}^{commit}`. If this fails, the hash does not exist — stop and alert the user.
+2. Run `git merge-base --is-ancestor {starting-hash} HEAD`. If this fails, the hash is not an ancestor of HEAD on this branch — stop and alert the user with a message explaining the hash must be reachable from the current branch's history.
+
+If validation passes, store the full resolved hash (from `git rev-parse`) as `{starting-hash}` for use in the CAPTURE phase. If the resolved value is `_`, skip validation — the CAPTURE phase will determine the starting point automatically.
 
 **(i-l) Ensure personal subdirectories exist.**
 
@@ -214,7 +225,7 @@ Create the full path if any segment is missing:
 {personal-dir-location}/notes/{year}/{month}/{codebase-name}/
 ```
 
-### Steps 6–13 — Execute Frontmatter Phases
+### Steps 6–14 — Execute Frontmatter Phases
 
 Execute each phase **in order**. For each phase:
 
@@ -228,22 +239,25 @@ Execute each phase **in order**. For each phase:
 
 | Step | | Phase | Frontmatter File | Output |
 |------|---|-------|------------------|--------|
-| 6 | 🔍 | Scrutinize | `SCRUTINIZE-{mode}.md` | `comments_{timestamp}.md` |
-| 7 | ⏪ | Retro | `RETRO.md` | `retro_{timestamp}.md` |
+| 6 | 📸 | Capture | `CAPTURE.md` | `diffs_{timestamp}.md` |
+| 7 | 🔍 | Scrutinize | `SCRUTINIZE-{mode}.md` | `comments_{timestamp}.md` |
+| 8 | ⏪ | Retro | `RETRO.md` | `retro_{timestamp}.md` |
+| 9 | 📊 | Evaluate | `EVALUATE.md` | `evaluation_{timestamp}.md` |
+| 10 | 📐 | Formulate | `FORMULATE.md` | `plan_{timestamp}.md` |
+| 11 | 🏗️ | Implement | `IMPLEMENT.md` | Code changes in the repo |
+| 12 | 🤔 | Sanity Check | `SANITYCHECK.md` | `sanity-check_{timestamp}.md` |
+| 13 | 📓 | Glean | `GLEAN.md` | `lessons_{timestamp}.md` |
+| 14 | 📦 | Finalize | `FINALIZE.md` | Git commits (not pushed) |
 
-**Note on Step 6:** The Scrutinize phase reads `SCRUTINIZE-{mode}.md` where `{mode}` is the resolved mode name from Step 5(n) (e.g., `SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`). All other phases (Steps 7–13) are unaffected by the mode — they always read their fixed frontmatter file.
-| 8 | 📊 | Evaluate | `EVALUATE.md` | `evaluation_{timestamp}.md` |
-| 9 | 📐 | Formulate | `FORMULATE.md` | `plan_{timestamp}.md` |
-| 10 | 🏗️ | Implement | `IMPLEMENT.md` | Code changes in the repo |
-| 11 | 🤔 | Sanity Check | `SANITYCHECK.md` | `sanity-check_{timestamp}.md` |
-| 12 | 📓 | Glean | `GLEAN.md` | `lessons_{timestamp}.md` |
-| 13 | 📦 | Finalize | `FINALIZE.md` | Git commits (not pushed) |
+**Note on Step 6:** The Capture phase runs first and produces `diffs_{timestamp}.md`. This output is mode-independent — it never gets mode-name injection. Subsequent phases (Scrutinize, Retro) use the captured diff data as their primary source for identifying code changes.
 
-**Mode-dependent output naming:** When the resolved mode is `default`, the output filenames shown above are used as-is. When the mode is anything other than `default`, the Scrutinize, Evaluate, and Glean output files include the mode name: `comments-{mode}_{timestamp}.md`, `evaluation-{mode}_{timestamp}.md`, `lessons-{mode}_{timestamp}.md`. The Retro, Formulate, Sanity Check, and Finalize outputs are unaffected by mode and always use their fixed names.
+**Note on Step 7:** The Scrutinize phase reads `SCRUTINIZE-{mode}.md` where `{mode}` is the resolved mode name from Step 5(n) (e.g., `SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`). All other phases (Steps 8–14) are unaffected by the mode — they always read their fixed frontmatter file.
+
+**Mode-dependent output naming:** When the resolved mode is `default`, the output filenames shown above are used as-is. When the mode is anything other than `default`, the Scrutinize, Evaluate, and Glean output files include the mode name: `comments-{mode}_{timestamp}.md`, `evaluation-{mode}_{timestamp}.md`, `lessons-{mode}_{timestamp}.md`. The Capture, Retro, Formulate, Sanity Check, and Finalize outputs are unaffected by mode and always use their fixed names.
 
 All markdown output files are saved to: `{personal-dir-location}/notes/{year}/{month}/{folder-name}/`
 
-### Step 14 — Process Complete
+### Step 15 — Process Complete
 
 The process is finished. Inform the user:
 
@@ -262,7 +276,8 @@ All time-bound and run-scoped variables are now unset. A fresh `/roast-beast` in
 - **Attribution controlled by parameter.** Agent attribution (Co-Authored-By lines) is only included when `--agent-attribution` resolves to `true`. The default is `false` — all agent attribution is stripped.
 - **No push.** The skill creates commits but never pushes them. The user pushes manually.
 - **No PR required.** Unlike rockem-sockem, this skill does not require an open Pull Request. It works on any checked-out branch.
-- **Scrutinize modes.** The `--mode` parameter controls how the SCRUTINIZE phase reviews code. It affects only Step 6 — all other phases are unchanged. If no mode is specified, the default mode is used. The mode can be specified by name, ID letter, or emoji symbol.
+- **Starting hash.** The `--starting-hash` parameter controls the scope of the diff captured in Step 6. When `_` (default), the CAPTURE phase determines the fork point via `git merge-base main HEAD`. When set to a specific commit hash, that hash is used as the starting point (inclusive). The hash is validated in Step 5(o) before use.
+- **Scrutinize modes.** The `--mode` parameter controls how the SCRUTINIZE phase reviews code. It affects only Step 7 — all other phases are unchanged. If no mode is specified, the default mode is used. The mode can be specified by name, ID letter, or emoji symbol.
 - **Lessons learned file.** Lessons are stored in `LESSONSLEARNED.md` (gitignored, user-specific). If the file is missing, the skill treats lessons as empty. Copy `LESSONSLEARNED.md.example` to `LESSONSLEARNED.md` and populate it as you accumulate insights.
 - **Sanity check rules file.** Sanity check rules are stored in `SANITYCHECK-RULES.md` (gitignored, user-specific). Unlike lessons learned, this file is **required** — the skill stops if it is missing. Copy `SANITYCHECK-RULES.md.example` to `SANITYCHECK-RULES.md` and customize the rules.
 - **Guidance file.** Architectural guidance is stored in `GUIDANCE.md` (gitignored, user-specific). This file is **required** — the skill stops if it is missing. Copy `GUIDANCE.md.example` to `GUIDANCE.md` and customize.
