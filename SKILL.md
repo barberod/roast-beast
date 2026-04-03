@@ -1,13 +1,13 @@
 ---
-name: statler-waldorf
+name: roast-beast
 description: General code review skill that authors antagonistic pseudo-comments on dev branch changes, evaluates them, checks past lessons, and implements fixes.
 ---
 
-# Statler-Waldorf
+# Roast Beast
 
-**When to use:** Invoke with `/statler-waldorf` to perform a self-review of dev branch code changes. The skill authors antagonistic pseudo-comments, checks code against accumulated lessons learned, evaluates the findings, plans and implements fixes, extracts new lessons, and commits the results — all in one invocation. Unlike rockem-sockem, this skill does **not** require an open PR.
+**When to use:** Invoke with `/roast-beast` to perform a self-review of dev branch code changes. The skill authors antagonistic pseudo-comments, checks code against accumulated lessons learned, evaluates the findings, plans and implements fixes, extracts new lessons, and commits the results — all in one invocation. Unlike rockem-sockem, this skill does **not** require an open PR.
 
-**Usage:** `/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
+**Usage:** `/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]`
 
 - Parameters use `--name:value` syntax and may appear in **any order**.
 - Boolean parameters accept `--name:true`, `--name:false`, or bare `--name` (shorthand for `--name:true`).
@@ -20,13 +20,13 @@ description: General code review skill that authors antagonistic pseudo-comments
 - Pass `--help` to display a quick reference and exit.
 
 **Examples:**
-- `/statler-waldorf --item-id:20525 --quiet --min-comments:5`
-- `/statler-waldorf --item-id:20525` — codebase, other params use config defaults
-- `/statler-waldorf --item-id:20525 --quiet:force --min-comments:10` — maximum antagonism, zero interruptions
-- `/statler-waldorf --item-id:20525 --mode:harsh --min-comments:8` — harsh scrutiny with high minimum
-- `/statler-waldorf --item-id:20525 --mode:frontend` — frontend-focused review
-- `/statler-waldorf --item-id:20525 --mode:Q` — quick mode (by ID)
-- `/statler-waldorf` — prompts for item-id, other params use config defaults
+- `/roast-beast --item-id:20525 --quiet --min-comments:5`
+- `/roast-beast --item-id:20525` — codebase, other params use config defaults
+- `/roast-beast --item-id:20525 --quiet:force --min-comments:10` — maximum antagonism, zero interruptions
+- `/roast-beast --item-id:20525 --mode:harsh --min-comments:8` — harsh scrutiny with high minimum
+- `/roast-beast --item-id:20525 --mode:frontend` — frontend-focused review
+- `/roast-beast --item-id:20525 --mode:Q` — quick mode (by ID)
+- `/roast-beast` — prompts for item-id, other params use config defaults
 
 ## Overview
 
@@ -62,7 +62,7 @@ If `config.json` is missing or unreadable, stop and alert the user.
 
 **Parse and resolve named parameters.** After loading config, parse the invocation arguments using these rules:
 
-1. Split the argument string on spaces.
+1. Split the argument string on spaces, but respect quoted groups. If a value is wrapped in matching single quotes (`'`), double quotes (`"`), or backticks (`` ` ``), treat everything inside (including spaces) as one token. After splitting, strip the outermost matching quotes from each token (e.g., `'--codebase:C:\my repo'` becomes `--codebase:C:\my repo`; `--codebase:'C:\my repo'` becomes `--codebase:C:\my repo`). Unmatched or mismatched quotes are left as-is.
 2. **Help check.** If any token is `--help`, read `HELP.md` from this skill directory and display its contents to the user. Then **stop** — do not continue with the rest of the skill.
 3. Each token must start with `--`. If any token lacks the `--` prefix, stop and alert the user that this skill uses named parameters, and show the correct syntax.
 4. For each `--` token, split on the **first** colon (`:`) to get the parameter name and value. If there is no colon, the token is a bare boolean flag (value = `true`). Splitting on the first colon is critical for Windows paths (e.g., `--codebase:C:\foo` yields name=`codebase`, value=`C:\foo`).
@@ -131,7 +131,7 @@ The mapping of codebases, IDs, symbols, locations, and aliases is as follows:
 | A | 🏢 | project | `project-repo-location` | `work`, `product`, `theirs` |
 | Z | 🏠 | personal | `personal-dir-location` | `dev`, `notes`, `mine` |
 
-**Passing a path:** The `--codebase` value may also be an absolute path to a directory (e.g., `--codebase:C:\Users\GeorgeBurdell\.claude\skills\statler-waldorf`). When a path is passed, validate: (1) the path exists, (2) it is accessible, (3) it contains a git repository. If any check fails, stop and alert the user. The resolved path may or may not match `project-repo-location` or `personal-dir-location`; the skill does not check for overlap.
+**Passing a path:** The `--codebase` value may also be an absolute path to a directory (e.g., `--codebase:C:\Users\GeorgeBurdell\.claude\skills\roast-beast`). When a path is passed, validate: (1) the path exists, (2) it is accessible, (3) it contains a git repository. If any check fails, stop and alert the user. The resolved path may or may not match `project-repo-location` or `personal-dir-location`; the skill does not check for overlap.
 
 ### Step 4 — Resolve Item ID and Verify Branch
 
@@ -250,7 +250,7 @@ The process is finished. Inform the user:
 1. New commits have been created on the designated branch, but the user must still **push** them.
 2. All artifacts have been saved to the personal notes directory.
 
-All time-bound and run-scoped variables are now unset. A fresh `/statler-waldorf` invocation will set its own values.
+All time-bound and run-scoped variables are now unset. A fresh `/roast-beast` invocation will set its own values.
 
 ---
 

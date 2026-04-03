@@ -1,4 +1,4 @@
-# Statler-Waldorf
+# Roast Beast
 
 A [Claude Code](https://claude.ai/code) skill that performs antagonistic self-review of dev branch code changes. It authors pseudo-comments as a harsh code reviewer, checks code against accumulated lessons learned, evaluates its own findings, plans and implements fixes, extracts new lessons, and commits the results -- all in one invocation.
 
@@ -29,7 +29,7 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
 
 1. Copy this directory into your Claude Code skills folder:
    ```
-   ~/.claude/skills/statler-waldorf/
+   ~/.claude/skills/roast-beast/
    ```
 
 2. Copy the example config and fill in your values:
@@ -88,7 +88,7 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
 ## Usage
 
 ```
-/statler-waldorf [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
+/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
 ```
 
 > **Tip:** Pass `--help` for a quick-reference card with all parameters, defaults, and examples.
@@ -110,15 +110,15 @@ Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `-
 Identity parameters (`--handle`, `--user-mail`, `--user-name`) fall back to the corresponding top-level config key rather than the `defaults` object. They are never prompted for.
 
 **Examples:**
-- `/statler-waldorf` -- prompts for item-id, uses config defaults for the rest
-- `/statler-waldorf --item-id:20525` -- use item ID 20525, config defaults for the rest
-- `/statler-waldorf --item-id:20525 --quiet --min-comments:5` -- quiet mode, at least 5 findings
-- `/statler-waldorf --item-id:20525 --quiet:force --min-comments:10` -- maximum antagonism, zero interruptions
-- `/statler-waldorf --item-id:20525 --mode:harsh --min-comments:8` -- harsh scrutiny with high minimum
-- `/statler-waldorf --item-id:20525 --mode:frontend` -- frontend-focused review
-- `/statler-waldorf --item-id:20525 --mode:Q` -- quick mode (by ID)
-- `/statler-waldorf --codebase:personal --item-id:main` -- review personal codebase main branch
-- `/statler-waldorf --handle:_ --user-mail:_` -- skip handle filtering and email check
+- `/roast-beast` -- prompts for item-id, uses config defaults for the rest
+- `/roast-beast --item-id:20525` -- use item ID 20525, config defaults for the rest
+- `/roast-beast --item-id:20525 --quiet --min-comments:5` -- quiet mode, at least 5 findings
+- `/roast-beast --item-id:20525 --quiet:force --min-comments:10` -- maximum antagonism, zero interruptions
+- `/roast-beast --item-id:20525 --mode:harsh --min-comments:8` -- harsh scrutiny with high minimum
+- `/roast-beast --item-id:20525 --mode:frontend` -- frontend-focused review
+- `/roast-beast --item-id:20525 --mode:Q` -- quick mode (by ID)
+- `/roast-beast --codebase:personal --item-id:main` -- review personal codebase main branch
+- `/roast-beast --handle:_ --user-mail:_` -- skip handle filtering and email check
 
 When it finishes:
 - Commits have been created locally -- you still need to **push**
