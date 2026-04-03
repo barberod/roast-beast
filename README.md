@@ -4,10 +4,11 @@ A [Claude Code](https://claude.ai/code) skill that performs antagonistic self-re
 
 ## Pipeline
 
-The skill runs 8 sequential phases:
+The skill runs 9 sequential phases:
 
 | | Phase | What it does | Output |
 |---|-------|-------------|--------|
+| 📸 | **Capture** | Captures git diff information from starting point through HEAD | `diffs_{timestamp}.md` |
 | 🔍 | **Scrutinize** | Authors antagonistic pseudo-comments about code changes (mode-dependent, min-comments enforced) | `comments_{timestamp}.md` |
 | ⏪ | **Retro** | Checks code against accumulated lessons learned from past runs | `retro_{timestamp}.md` |
 | 📊 | **Evaluate** | Grades each pseudo-comment and retro finding (A+ to F-) | `evaluation_{timestamp}.md` |
@@ -49,6 +50,7 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
        "codebase": "project",
        "quiet": false,
        "mode": "default",
+       "starting-hash": "_",
        "agent-attribution": false,
        "min-comments": 0
      }
@@ -88,7 +90,7 @@ Markdown artifacts are saved to a personal notes directory outside the repo.
 ## Usage
 
 ```
-/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
+/roast-beast [--codebase:value] [--item-id:value] [--handle:value] [--quiet[:false|true|force]] [--mode:value] [--starting-hash:value] [--agent-attribution[:bool]] [--min-comments:N] [--user-mail:value] [--user-name:value]
 ```
 
 > **Tip:** Pass `--help` for a quick-reference card with all parameters, defaults, and examples.
@@ -102,6 +104,7 @@ Parameters use `--name:value` syntax, in any order. Booleans accept `--name`, `-
 | `--handle` | string | *(config `handle` key)* | Developer handle for branch matching; `_` skips filtering |
 | `--quiet` | `false` \| `true` \| `force` | `false` | `false`: pause for confirmations. `true`: skip skill confirmations. `force`: skip all interruptions including tool approvals. |
 | `--mode` | string | `default` | Scrutinize review lens: `default` (📋), `harsh` (🔥), `frontend` (🎨), `cleancode` (🧹), `quick` (⚡), `academic` (🎓). Accepts name, ID letter, or symbol. |
+| `--starting-hash` | string | `_` | Commit hash to start diff from (inclusive). `_` diffs against main via merge-base. |
 | `--agent-attribution` | bool | `false` | Allow Co-Authored-By lines in git commits |
 | `--min-comments` | integer | `0` | Minimum pseudo-comments SCRUTINIZE must produce (0-10). Higher values force more antagonistic review. |
 | `--user-mail` | string | *(config `user-mail` key)* | Override git email check; `_` skips |
@@ -117,6 +120,7 @@ Identity parameters (`--handle`, `--user-mail`, `--user-name`) fall back to the 
 - `/roast-beast --item-id:20525 --mode:harsh --min-comments:8` -- harsh scrutiny with high minimum
 - `/roast-beast --item-id:20525 --mode:frontend` -- frontend-focused review
 - `/roast-beast --item-id:20525 --mode:Q` -- quick mode (by ID)
+- `/roast-beast --item-id:20525 --starting-hash:abc1234` -- review from specific commit through HEAD
 - `/roast-beast --codebase:personal --item-id:main` -- review personal codebase main branch
 - `/roast-beast --handle:_ --user-mail:_` -- skip handle filtering and email check
 
@@ -126,7 +130,7 @@ When it finishes:
 
 ## How it works
 
-Each phase is defined by a markdown file that contains instructions Claude follows at runtime. The Scrutinize phase uses mode-specific files (`SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`, etc.) while other phases use fixed files (`RETRO.md`, `EVALUATE.md`, etc.). Lessons learned are stored in `LESSONSLEARNED.md`, sanity check rules in `SANITYCHECK-RULES.md`, and architectural guidance in `GUIDANCE.md` (all gitignored, user-specific). `SKILL.md` is the orchestrator that ties them together. There is no compiled code -- the entire skill is structured prompts.
+Each phase is defined by a markdown file that contains instructions Claude follows at runtime. The Capture phase (`CAPTURE.md`) gathers git diff data from a configurable starting point. The Scrutinize phase uses mode-specific files (`SCRUTINIZE-DEFAULT.md`, `SCRUTINIZE-HARSH.md`, etc.) while other phases use fixed files (`RETRO.md`, `EVALUATE.md`, etc.). Lessons learned are stored in `LESSONSLEARNED.md`, sanity check rules in `SANITYCHECK-RULES.md`, and architectural guidance in `GUIDANCE.md` (all gitignored, user-specific). `SKILL.md` is the orchestrator that ties them together. There is no compiled code -- the entire skill is structured prompts.
 
 ## License
 
