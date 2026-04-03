@@ -20,6 +20,13 @@ Work in the following directory: `{personal-dir-location}\notes\{year}\{month}\{
 
 The codebase is in the following directory: `{codebase}`
 
+#### Diff Data
+
+The CAPTURE phase has already gathered the diff information. The captured data is in:
+`{personal-dir-location}\notes\{year}\{month}\{folder-name}\diffs_{timestamp}.md`
+
+Use the captured diff as your primary source for identifying what changed. Read full file context from the codebase as needed.
+
 ### Lessons Learned
 
 The following lessons have been learned from past code reviews and coding sessions. Each represents a recurring issue, a best practice, or a hard-won insight that should be checked against the current code changes.
@@ -32,7 +39,7 @@ Now, you will check the current branch's code changes against the Lessons Learne
 
 If no Lessons Learned items exist yet (the list above is empty), note that this is the first run and no retrospective check is possible. Produce the output file with a note to that effect and proceed.
 
-If Lessons Learned items do exist, examine the code changes on the current branch (compared to `main`) and determine, for each lesson, whether the current code changes violate, partially violate, or fully comply with the lesson. Some lessons may not be applicable to the current changes — mark those as N/A.
+If Lessons Learned items do exist, examine the code changes on the current branch (as captured in the diff data) and determine, for each lesson, whether the current code changes violate, partially violate, or fully comply with the lesson. Some lessons may not be applicable to the current changes — mark those as N/A.
 
 Be thorough. Read the actual code, not just the diff headers. A lesson about query correctness requires you to read the queries. A lesson about UI component usage requires you to examine the relevant frontend files. Do not assess compliance superficially.
 
