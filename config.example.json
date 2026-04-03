@@ -9,6 +9,7 @@
     "codebase": "project",
     "quiet": false,
     "mode": "default",
+    "starting-hash": "_",
     "agent-attribution": false,
     "min-comments": 0
   }
