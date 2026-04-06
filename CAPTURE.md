@@ -59,6 +59,7 @@ git diff {start}..HEAD
 - **Ignore DbContext changes.** Exclude any files whose name contains `DbContext` (e.g., `AcademicsDbContext.cs`, `StudentFirstDbContext.cs`). These files contain auto-generated scaffolding that is not meaningful for review.
 - **Include migration files, except Designer.cs.** Migration files (under `Migrations/` directories) should be included — they represent intentional schema changes. However, exclude any file named `*.Designer.cs` within migration directories, as these are auto-generated snapshots that are not meaningful for review.
 - **Ignore merge commits.** The commit log uses `--no-merges` to exclude merge commits. Commits that enter the branch via a merge from `main` are not part of the branch's own work.
+- **Filter by author.** If the value for `{user-name}` is not `_`, then you have the opportunity to use the value of `{user-name}` as a filter.
 
 ### Output
 

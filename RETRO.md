@@ -41,6 +41,8 @@ If no Lessons Learned items exist yet (the list above is empty), note that this 
 
 If Lessons Learned items do exist, examine the code changes on the current branch (as captured in the diff data) and determine, for each lesson, whether the current code changes violate, partially violate, or fully comply with the lesson. Some lessons may not be applicable to the current changes — mark those as N/A.
 
+**Do not breeze through the list of lessons learned without considering each and every one of them. You may determine a status -- violates, partially violates, fully complies, or N/A -- after considering a lesson learned, not before considering it.**
+
 Be thorough. Read the actual code, not just the diff headers. A lesson about query correctness requires you to read the queries. A lesson about UI component usage requires you to examine the relevant frontend files. Do not assess compliance superficially.
 
 ## Output
